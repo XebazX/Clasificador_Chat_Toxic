@@ -25,7 +25,7 @@
 - Leí los comentarios de la muestra manual y de los errores, y revisé los resultados de cada experimento.
 
 ## Verificación independiente
-- **Código:** ejecuté `python -m src.data`, `python -m src.train` y `python -m src.evaluate`; los 3 tests pasan; leí cada función y puedo explicarla.
+- **Código:** ejecuté `python -m src.data`, `src.train`, `src.evaluate`, `src.data_civil`, `src.train_combined`, `src.evaluate_combined`, `src.calibrate` y `src.sesgo_validacion`; las 10 pruebas automáticas pasan; leí cada función y puedo explicarla.
 - **Referencias:** abrí cada enlace de `referencias.md` y comprobé título, autores y fechas; la licencia del dataset la confirmé en la pestaña Data de Kaggle.
 - **Cifras:** las métricas del informe se copiaron de la salida de mis ejecuciones y de `results/experiments.jsonl` y `results/test_eval.json`.
 

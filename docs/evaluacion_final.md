@@ -1,6 +1,8 @@
 # Evaluación final en el conjunto de prueba
 
-Modelo final: **E-02** (TF-IDF 1-gramas + regresión logística, C=1, `class_weight="balanced"`), elegido con validación. Comparado con la línea base **E-01**. Conjunto de prueba: 23.891 comentarios, usado **una sola vez** (`src/evaluate.py`; resultados en `results/test_eval.json`). Umbrales fijados en validación, sin reajustar. Intervalos: bootstrap pareado de 1.000 remuestreos (IC 95 %).
+Modelo Evaluado: **E-02** (TF-IDF 1-gramas + regresión logística, C=1, `class_weight="balanced"`), elegido con validación. Comparado con la línea base **E-01**. Conjunto de prueba: 23.891 comentarios, usado **una sola vez** (`src/evaluate.py`; resultados en `results/test_eval.json`). Umbrales fijados en validación, sin reajustar. Intervalos: bootstrap pareado de 1.000 remuestreos (IC 95 %).
+
+> **Actualización del 24/11/2026:** este documento evalúa E-02, el mejor modelo entrenado solo con Jigsaw. El **modelo final del proyecto es E-06**; su evaluación está en `evaluacion_E-06.md` y su revisión de sesgo en `sesgo_E-06.md`.
 
 ## 1. Resultados globales (macro, promedio de 6 etiquetas)
 | Métrica | E-02 (final) | IC 95 % | E-01 (base) |

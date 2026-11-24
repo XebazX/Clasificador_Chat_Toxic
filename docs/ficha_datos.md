@@ -63,8 +63,8 @@ Muestra de 30 comentarios (`random_state=42`):
 - Entrenamiento: 111.490 filas | validación: 23.891 | prueba: 23.891 (≈70 / 15 / 15 %).
 - Comentarios con alguna etiqueta: 10,13 % en las tres particiones (estratificación verificada).
 - Verificación automática de no-fuga (ningún texto normalizado en más de una partición): OK.
-- Pruebas automáticas (`python -m pytest`): 3 aprobadas.
-
+- Pruebas automáticas (`python -m pytest`): 10 aprobadas (3 de preparación de datos y 7 de la aplicación).
+- 
 ## 8. Segundo dataset: Civil Comments (usado solo en E-06)
 - **Fuente:** Hugging Face, `google/civil_comments`. **Fecha de acceso:** 24/11/2026.
 - **Licencia:** CC0 (según su dataset card, ref. 7).
