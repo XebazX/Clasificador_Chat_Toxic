@@ -5,6 +5,23 @@ Clasificador multietiqueta de comentarios en **inglés** que estima la probabili
 ## Demo en línea
 **https://toxic-scanner.streamlit.app/**
 
+## Dónde está cada criterio de la rúbrica
+| # | Criterio | Dónde verlo |
+|---|---|---|
+| 1 | Problema, objetivos y alcance | `docs/planteamiento.md`, `docs/glosario.md` |
+| 2 | Investigación y referencias | `docs/referencias.md` |
+| 3 | Datos | `docs/ficha_datos.md`, `notebooks/01_eda.ipynb` |
+| 4 | Base de conocimiento | `docs/base_conocimiento.md` |
+| 5 | Preparación y prevención de fuga | `src/data.py`, `tests/test_data.py`, `docs/ficha_datos.md` (secciones 6 y 7) |
+| 6 | Método y línea base | `docs/decisiones_tecnicas.md` |
+| 7 | Entrenamiento y experimentos | `docs/bitacora_experimentos.md`, `results/experiments.jsonl`, `src/train.py`, `src/train_combined.py` |
+| 8 | Métricas y evaluación | `docs/plan_evaluacion.md`, `docs/evaluacion_final.md`, `docs/evaluacion_E-06.md` |
+| 9 | Errores y validez | `docs/evaluacion_final.md` (secciones 5 a 7), `docs/sesgo_E-06.md` |
+| 10 | Código e ingeniería | `src/`, `tests/`, `configs/`, `requirements.txt` |
+| 11 | Aplicación y entrega | https://toxic-scanner.streamlit.app/, `streamlit_app.py`, `docs/plan_seguimiento.md` |
+| 12 | Ética y uso de IA | `docs/riesgos_etica.md`, `docs/declaracion_ia.md` |
+| 13 | Documentación | `README.md`, `docs/lista_verificacion.md` |
+
 Escribe un comentario en inglés y presiona Ctrl+Enter: la página muestra la probabilidad de cada categoría y si queda marcado para revisión humana. Usa el modelo final (E-06). La aplicación no guarda los textos que se escriben; aun así, no escribas datos personales. Si la página está dormida por falta de uso, al abrirla tarda un momento en despertar.
 
 ## Alcance
