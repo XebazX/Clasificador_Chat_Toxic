@@ -9,3 +9,17 @@ labels: [toxic, severe_toxic, obscene, threat, insult, identity_hate]
 split:
   val_size: 0.15
   test_size: 0.15
+
+  
+tfidf:
+  max_features: 50000
+
+cv_folds: 5
+c_grid: [0.3, 1, 3, 10]
+
+experiments:
+  - {id: E-01, desc: "Línea base: TF-IDF 1-grama + regresión logística", model: logreg, ngram_range: [1, 1], class_weight: false, C: 1.0}
+  - {id: E-02, desc: "E-01 con class_weight balanced", model: logreg, ngram_range: [1, 1], class_weight: true, C: 1.0}
+  - {id: E-03, desc: "E-02 con n-gramas (1,2)", model: logreg, ngram_range: [1, 2], class_weight: true, C: 1.0}
+  - {id: E-04, desc: "E-03 con C ajustado en validación", model: logreg, ngram_range: [1, 2], class_weight: true, C: tune}
+  - {id: E-05, desc: "E-04 cambiando el clasificador a LinearSVC", model: svc, ngram_range: [1, 2], class_weight: true, C: from_E-04}
