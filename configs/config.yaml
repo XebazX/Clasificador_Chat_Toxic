@@ -1,0 +1,11 @@
+seed: 42
+
+paths:
+  raw: data/train.csv
+  processed_dir: data/processed
+
+labels: [toxic, severe_toxic, obscene, threat, insult, identity_hate]
+
+split:
+  val_size: 0.15
+  test_size: 0.15

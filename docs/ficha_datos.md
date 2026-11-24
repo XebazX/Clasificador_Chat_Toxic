@@ -57,3 +57,10 @@ Muestra de 30 comentarios (`random_state=42`):
 4. Ajustar las transformaciones (por ejemplo, TF-IDF) únicamente con el conjunto de entrenamiento.
 5. Mantener el conjunto de prueba intacto hasta la evaluación final.
 6. No se usa `test.csv` de Kaggle: parte de sus comentarios no fue incluida en la calificación original y sus etiquetas se publicaron después del cierre. La prueba se construye a partir de `train.csv`.
+
+## 7. Resultado de la preparación (`python -m src.data`, semilla 42)
+- Filas antes: 159.571 | después de limpiar: 159.272 (quitadas: 299 = 258 casi-duplicados sobrantes + 41 filas extra de grupos con etiquetas contradictorias).
+- Entrenamiento: 111.490 filas | validación: 23.891 | prueba: 23.891 (≈70 / 15 / 15 %).
+- Comentarios con alguna etiqueta: 10,13 % en las tres particiones (estratificación verificada).
+- Verificación automática de no-fuga (ningún texto normalizado en más de una partición): OK.
+- Pruebas automáticas (`python -m pytest`): 3 aprobadas.
