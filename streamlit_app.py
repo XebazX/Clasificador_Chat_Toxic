@@ -63,8 +63,7 @@ st.markdown(CSS, unsafe_allow_html=True)
 st.markdown(
     '<h1 class="neon-title">TOXIC SCANNER</h1>'
     '<p class="neon-sub">Escribe un comentario <b>en inglés</b> y presiona '
-    f'Ctrl+Enter · modelo {MODELO} (TF-IDF + regresión logística) · datos de '
-    'Wikipedia (Jigsaw) y sitios de noticias (Civil Comments), 2015-2017</p>',
+    f'Ctrl+Enter · modelo {MODELO} (TF-IDF + regresión logística) · comentarios anteriores a 2018 de Wikipedia (Jigsaw) y de sitios de noticias (Civil Comments)</p>',
     unsafe_allow_html=True)
 
 st.caption("Prueba con estos ejemplos:")
@@ -92,8 +91,8 @@ if puntajes:
 
 with st.expander("Límites de uso"):
     st.markdown(
-        "- Solo funciona en **inglés** y fue entrenado con comentarios de "
-        "2015-2017; la jerga actual o los chats pueden fallar.\n"
+        "- Solo funciona en **inglés** y entrenado con comentarios anteriores a 2018;"
+        "la jerga actual o los chats pueden fallar.\n"
         "- Es una **herramienta de apoyo**: la decisión sobre un comentario o "
         "usuario debe tomarla una persona.\n"
         "- No entiende contexto, ironía ni citas.\n"

@@ -78,8 +78,8 @@ def crear_app(pipe, umbrales, calib=None):
             '<h1 class="neon-title">TOXIC SCANNER</h1>'
             '<p class="neon-sub">Escribe un comentario <b>en inglés</b> y el '
             f'resultado aparece en vivo · modelo <code>{MODELO}</code> '
-            '(TF-IDF + regresión logística) · datos de Wikipedia (Jigsaw) y '
-            'sitios de noticias (Civil Comments), 2015-2017</p>')
+            '(TF-IDF + regresión logística) ·comentarios anteriores a 2018 de Wikipedia (Jigsaw) y"'
+            ' de sitios de noticias (Civil Comments)</p>')
         entrada = gr.Textbox(label="Tu comentario", lines=4, elem_id="entrada",
                              placeholder="Type a comment in English...")
         resumen = gr.Markdown()
@@ -95,8 +95,8 @@ def crear_app(pipe, umbrales, calib=None):
             inputs=entrada, label="Prueba con estos ejemplos")
         with gr.Accordion("Límites de uso", open=False):
             gr.Markdown(
-                "- Solo funciona en **inglés** y fue entrenado con comentarios de "
-                "2015-2017; la jerga actual o los chats pueden fallar.\n"
+                "- Solo funciona en **inglés** y entrenado con comentarios anteriores a 2018;"
+                "la jerga actual o los chats pueden fallar.\n"
                 "- Es una **herramienta de apoyo**: la decisión sobre un comentario "
                 "o usuario debe tomarla una persona.\n"
                 "- No entiende contexto, ironía ni citas, y puede marcar de más "

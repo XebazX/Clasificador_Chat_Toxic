@@ -9,7 +9,7 @@ Escribe un comentario en inglés y presiona Ctrl+Enter: la página muestra la pr
 
 ## Alcance
 - **Hace:** recibe un comentario en inglés y devuelve la probabilidad de cada categoría de toxicidad.
-- **No hace:** no funciona en otros idiomas, no sanciona ni borra mensajes, no entiende contexto, ironía ni citas, y no garantiza ausencia de sesgo (ver `docs/evaluacion_final.md`). Los datos son de 2015 a 2017: la jerga actual puede fallar.
+- **No hace:** no funciona en otros idiomas, no sanciona ni borra mensajes, no entiende contexto, ironía ni citas, y no garantiza ausencia de sesgo (ver `docs/evaluacion_final.md`).Los datos son anteriores a 2018: la jerga actual puede fallar.
 
 ## Datos
 - **Jigsaw Toxic Comment Classification Challenge** (comentarios de Wikipedia). CC0 para el conjunto y CC-SA-3.0 para el texto. Se descarga manualmente de Kaggle.
