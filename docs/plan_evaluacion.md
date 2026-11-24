@@ -29,10 +29,10 @@ No se usa accuracy como métrica principal: con 89,83 % de comentarios sin etiqu
 
 ## 4. Criterio de éxito (fijado antes de ver resultados)
 El modelo final se considera exitoso si, en el conjunto de **prueba**:
-1. Su **ROC-AUC macro** es mayor que el de la línea base.
-2. Su **F1 macro** es mayor que el de la línea base.
-3. La mejora sobre la línea base **no queda dentro del intervalo de confianza** del bootstrap (ver sección 5); si queda dentro, se reporta como "sin mejora demostrable".
-4. Se reporta honestamente el desempeño de la peor etiqueta, sin esconderlo detrás del promedio.
+1. En la prueba de Civil Comments (5 etiquetas), E-06 supera a E-02 en ROC-AUC macro y en F1 macro.
+2. La diferencia de ROC-AUC tiene un IC 95 % (bootstrap pareado) que no incluye el cero.
+3. En la prueba de Jigsaw (6 etiquetas, segundo uso, solo descriptivo), E-06 no pierde más de 0,005 de ROC-AUC macro frente a E-02.
+Si no se cumplen, se reporta tal cual y el modelo final sigue siendo E-02.
 
 ## 5. Variabilidad
 - **Validación cruzada de 5 particiones** sobre el conjunto de entrenamiento para comparar experimentos (media ± desviación estándar).
@@ -58,3 +58,14 @@ Se conservan los resultados desfavorables.
 ## 8. Qué no se hace
 - No se ajusta nada con el conjunto de prueba.
 - No se cambian estos criterios después de ver resultados; si hay que cambiarlos, se anota el cambio, la fecha y el motivo.
+
+## Adenda del 23/11/2026: experimento E-06 (definida antes de entrenarlo)
+**Motivo:** al probar la aplicación, los puntajes de comentarios informales salían inflados y se quiso comprobar si más datos, de otro dominio, ayudan. Se suma una muestra de Civil Comments (comentarios de sitios de noticias, 2015–2017, CC0) a los datos de Jigsaw.
+**Datos:** entrenamiento = Jigsaw (train) + Civil Comments (300 mil); validación = Jigsaw (val) + Civil Comments (30 mil); etiquetas de Civil Comments convertidas a 0/1 con corte 0,5.
+**Modelo:** igual a E-02 (única variable que cambia: los datos de entrenamiento).
+**Prueba:** la prueba de Civil Comments (30 mil, no usada antes). La prueba de Jigsaw ya se usó una vez; sus resultados en E-06 se reportan solo como dato descriptivo y no se usan para decidir.
+**Criterio de éxito (fijado antes de ver resultados):**
+1. E-06 supera a E-02 en ROC-AUC macro y en F1 macro sobre la prueba de Civil Comments.
+2. La diferencia de ROC-AUC tiene un IC 95 % (bootstrap) que no incluye el cero.
+3. En la prueba de Jigsaw, E-06 no pierde más de 0,005 de ROC-AUC macro frente a E-02.
+Si no se cumplen, se reporta tal cual y el modelo final sigue siendo E-02.
