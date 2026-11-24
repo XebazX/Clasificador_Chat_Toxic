@@ -7,93 +7,84 @@ from pathlib import Path
 import gradio as gr
 import joblib
 
-MODELO = "E-06"
-RUTA_MODELO = Path("models") / f"{MODELO}.joblib"
-RUTA_CALIB = Path("models") / f"{MODELO}_calibracion.json"
+from src.predict import (ETIQUETAS, MAX_CARACTERES, MODELO, NOMBRES, RUTA_MODELO,
+                         calibrar, cargar_calibracion, clasificar, puntuar)
 
-ETIQUETAS = ["toxic", "severe_toxic", "obscene", "threat", "insult",
-             "identity_hate"]
-NOMBRES = {
-    "toxic": "Tóxico (general)",
-    "severe_toxic": "Muy tóxico",
-    "obscene": "Obsceno",
-    "threat": "Amenaza",
-    "insult": "Insulto",
-    "identity_hate": "Odio hacia un grupo",
+
+CSS = """
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&display=swap');
+
+.gradio-container {
+    background: radial-gradient(circle at 15% 0%, #2b0a4a 0%, #0a0a1f 45%, #02030d 100%) !important;
 }
-MAX_CARACTERES = 5000
+.neon-title {
+    font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 2.3rem;
+    text-align: center; letter-spacing: 2px; margin: .3em 0 0;
+    background: linear-gradient(90deg, #00f0ff, #ff2bd6, #b6ff00);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(0 0 12px rgba(255, 43, 214, .55));
+}
+.neon-sub { text-align: center; color: #9fb3ff; margin: .2em 0 1.2em; }
+#entrada textarea {
+    background: #0b0f24 !important; color: #e8f7ff !important; font-size: 1.05rem;
+    border: 1px solid #00f0ff !important; border-radius: 14px !important;
+    box-shadow: 0 0 14px rgba(0, 240, 255, .35) !important; transition: all .25s;
+}
+#entrada textarea:focus {
+    border-color: #ff2bd6 !important; box-shadow: 0 0 22px rgba(255, 43, 214, .7) !important;
+}
+.banner { padding: 14px 18px; border-radius: 14px; font-size: 1.05rem;
+          background: rgba(10, 15, 36, .85); color: #e8f7ff; }
+.banner.ok { border: 1px solid #b6ff00; box-shadow: 0 0 16px rgba(182, 255, 0, .45); }
+.banner.info { border: 1px solid #00f0ff; box-shadow: 0 0 16px rgba(0, 240, 255, .45); }
+.banner.alerta { border: 1px solid #ff2bd6; box-shadow: 0 0 18px rgba(255, 43, 214, .65);
+                 animation: pulso 1.6s ease-in-out infinite; }
+@keyframes pulso { 50% { box-shadow: 0 0 32px rgba(255, 43, 214, .95); } }
+#detalle { border: 1px solid rgba(0, 240, 255, .4) !important; border-radius: 16px !important;
+           box-shadow: 0 0 18px rgba(0, 240, 255, .2); }
+"""
 
-
-def cargar_calibracion() -> dict:
-    """Umbrales (sobre el puntaje crudo) y parámetros de calibración."""
-    return json.loads(RUTA_CALIB.read_text(encoding="utf-8"))
-
-
-def calibrar(puntaje: float, a: float, b: float) -> float:
-    """Convierte el puntaje crudo en una probabilidad estimada (Platt)."""
-    p = min(max(puntaje, 1e-6), 1 - 1e-6)
-    z = a * math.log(p / (1 - p)) + b
-    return 1 / (1 + math.exp(-z))
-
-
-def puntuar(texto: str, pipe) -> dict:
-    """Puntaje crudo (0 a 1) del modelo para cada etiqueta."""
-    X = pipe.named_steps["tfidf"].transform([texto])
-    p = pipe.named_steps["clf"].predict_proba(X)[0]
-    return {e: float(v) for e, v in zip(ETIQUETAS, p)}
-
-
-def clasificar(texto, pipe, umbrales, calib=None):
-    """Valida la entrada y devuelve (puntajes_mostrados, etiquetas_marcadas,
-    mensaje). La decisión usa siempre el puntaje crudo y su umbral; si hay
-    calibración, solo cambian los porcentajes que se muestran."""
-    if texto is None or not texto.strip():
-        return None, [], "Escribe un comentario en inglés para analizarlo."
-    if len(texto) > MAX_CARACTERES:
-        return None, [], (f"El texto es demasiado largo ({len(texto)} "
-                          f"caracteres). El máximo es {MAX_CARACTERES}.")
-
-    crudos = puntuar(texto, pipe)
-    marcadas = [e for e, u in zip(ETIQUETAS, umbrales) if crudos[e] >= u]
-    if calib:
-        mostrados = {e: calibrar(crudos[e], calib["a"][i], calib["b"][i])
-                     for i, e in enumerate(ETIQUETAS)}
-    else:
-        mostrados = crudos
-
-    if marcadas:
-        nombres = ", ".join(NOMBRES[e] for e in marcadas)
-        mensaje = f"⚠️ **Marcado para revisión humana:** {nombres}"
-    else:
-        mensaje = ("✅ **Ninguna categoría supera su umbral.** Esto no "
-                   "garantiza que el comentario sea inofensivo.")
-
-    no_ascii = sum(1 for c in texto if ord(c) > 127) / len(texto)
-    if no_ascii > 0.3:
-        mensaje += ("\n\n_Aviso: el texto parece no estar en inglés; el modelo "
-                    "solo fue entrenado con inglés y el resultado no es fiable._")
-    return mostrados, marcadas, mensaje
+TEMA = gr.themes.Base(
+    primary_hue="fuchsia", secondary_hue="cyan", neutral_hue="slate",
+    font=[gr.themes.GoogleFont("Space Grotesk"), "system-ui", "sans-serif"],
+).set(
+    body_background_fill="#02030d", body_background_fill_dark="#02030d",
+    background_fill_primary="#0b0f24", background_fill_primary_dark="#0b0f24",
+    block_background_fill="#0b0f24", block_background_fill_dark="#0b0f24",
+    block_border_color="#1d2a5c", block_border_color_dark="#1d2a5c",
+    input_background_fill="#0b0f24", input_background_fill_dark="#0b0f24",
+    body_text_color="#e8f7ff", body_text_color_dark="#e8f7ff",
+    button_primary_background_fill="linear-gradient(90deg, #00f0ff, #ff2bd6)",
+    button_primary_background_fill_hover="linear-gradient(90deg, #ff2bd6, #b6ff00)",
+    button_primary_text_color="#02030d",
+    stat_background_fill="linear-gradient(90deg, #00f0ff, #ff2bd6)",
+)
 
 
 def crear_app(pipe, umbrales, calib=None):
     def analizar(texto):
-        puntajes, _, mensaje = clasificar(texto, pipe, umbrales, calib)
+        puntajes, marcadas, mensaje = clasificar(texto, pipe, umbrales, calib)
         if puntajes is None:
-            return None, mensaje
-        return {NOMBRES[e]: s for e, s in puntajes.items()}, mensaje
+            clase = "info"
+        else:
+            clase = "alerta" if marcadas else "ok"
+        banner = f'<div class="banner {clase}">\n\n{mensaje}\n\n</div>'
+        if puntajes is None:
+            return None, banner
+        return {NOMBRES[e]: s for e, s in puntajes.items()}, banner
 
     with gr.Blocks(title="Clasificador de comentarios tóxicos") as demo:
-        gr.Markdown(
-            "# Clasificador de comentarios tóxicos\n"
-            "Escribe un comentario **en inglés** y el resultado aparece debajo. "
-            f"Modelo `{MODELO}` (TF-IDF + regresión logística), entrenado con "
-            "comentarios de Wikipedia (Jigsaw, 2017) y de sitios de noticias "
-            "(Civil Comments, 2015-2017).")
-        entrada = gr.Textbox(label="Comentario (en inglés)", lines=4,
+        gr.HTML(
+            '<h1 class="neon-title">TOXIC SCANNER</h1>'
+            '<p class="neon-sub">Escribe un comentario <b>en inglés</b> y el '
+            f'resultado aparece en vivo · modelo <code>{MODELO}</code> '
+            '(TF-IDF + regresión logística) · datos de Wikipedia (Jigsaw) y '
+            'sitios de noticias (Civil Comments), 2015-2017</p>')
+        entrada = gr.Textbox(label="Tu comentario", lines=4, elem_id="entrada",
                              placeholder="Type a comment in English...")
         resumen = gr.Markdown()
         detalle = gr.Label(label="Probabilidad estimada por categoría",
-                           num_top_classes=6)
+                           num_top_classes=6, elem_id="detalle")
         entrada.change(analizar, entrada, [detalle, resumen],
                        trigger_mode="always_last", show_progress="hidden")
         gr.Examples(
@@ -101,26 +92,25 @@ def crear_app(pipe, umbrales, calib=None):
                       "Hello bro, how are u today?",
                       "You are an idiot.",
                       "I will find you and hurt you."],
-            inputs=entrada)
-        gr.Markdown(
-            "### Límites de uso\n"
-            "- Solo funciona en **inglés** y fue entrenado con comentarios de "
-            "2015-2017 (Wikipedia y sitios de noticias); la jerga actual o "
-            "los chats pueden fallar.\n"
-            "- Es una **herramienta de apoyo**: la decisión sobre un comentario "
-            "o usuario debe tomarla una persona.\n"
-            "- No entiende contexto, ironía ni citas, y puede marcar de más "
-            "comentarios que mencionan ciertos grupos.\n"
-            "- Las categorías raras (amenaza, odio hacia un grupo) son menos "
-            "fiables.\n"
-            "- Los porcentajes son una estimación calibrada con datos de "
-            "validación, no una garantía.\n"
-            "- Esta aplicación no guarda los textos que escribes; aun así, "
-            "no escribas datos personales.")
+            inputs=entrada, label="Prueba con estos ejemplos")
+        with gr.Accordion("Límites de uso", open=False):
+            gr.Markdown(
+                "- Solo funciona en **inglés** y fue entrenado con comentarios de "
+                "2015-2017; la jerga actual o los chats pueden fallar.\n"
+                "- Es una **herramienta de apoyo**: la decisión sobre un comentario "
+                "o usuario debe tomarla una persona.\n"
+                "- No entiende contexto, ironía ni citas, y puede marcar de más "
+                "comentarios que mencionan ciertos grupos.\n"
+                "- Las categorías raras (amenaza, odio hacia un grupo) son menos "
+                "fiables.\n"
+                "- Los porcentajes son una estimación calibrada con datos de "
+                "validación, no una garantía.\n"
+                "- Esta aplicación no guarda los textos que escribes; aun así, "
+                "no escribas datos personales.")
     return demo
 
 
 if __name__ == "__main__":
     modelo = joblib.load(RUTA_MODELO)
     cfg = cargar_calibracion()
-    crear_app(modelo, cfg["umbrales"], cfg).launch()
+    crear_app(modelo, cfg["umbrales"], cfg).launch(theme=TEMA, css=CSS)
