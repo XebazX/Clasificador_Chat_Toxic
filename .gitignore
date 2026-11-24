@@ -225,6 +225,8 @@ __marimo__/
 data/
 .env
 *.key
-models/
+models/*
+!models/E-06.joblib
+!models/E-06_calibracion.json
 
 results/errores_*.csv
