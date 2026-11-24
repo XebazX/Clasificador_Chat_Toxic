@@ -64,3 +64,14 @@ Muestra de 30 comentarios (`random_state=42`):
 - Comentarios con alguna etiqueta: 10,13 % en las tres particiones (estratificación verificada).
 - Verificación automática de no-fuga (ningún texto normalizado en más de una partición): OK.
 - Pruebas automáticas (`python -m pytest`): 3 aprobadas.
+
+## 8. Segundo dataset: Civil Comments (usado solo en E-06)
+- **Fuente:** Hugging Face, `google/civil_comments`. **Fecha de acceso:** 24/11/2026.
+- **Licencia:** CC0 (según su dataset card, ref. 7).
+- **Contenido:** comentarios en inglés de sitios de noticias (2015-2017). Originalmente 1.804.874 comentarios de entrenamiento y 97.320 de validación y de prueba.
+- **Etiquetas:** cada una es la fracción de anotadores que la marcó (0 a 1). Se convirtieron a 0/1 con corte 0,5: toxic ← toxicity, severe_toxic ← severe_toxicity, obscene ← obscene, threat ← threat, insult ← insult, identity_hate ← identity_attack.
+- **Muestra usada** (semilla 42, `src/data_civil.py`): 300.000 / 30.000 / 30.000, que tras la limpieza (las mismas reglas que Jigsaw) y quitar textos de entrenamiento presentes en validación o prueba quedaron en 297.458 / 29.917 / 29.927. Con alguna etiqueta: 8,26 % / 8,20 % / 8,06 %.
+- **Positivos en entrenamiento:** toxic 23.985; insult 17.594; identity_hate 2.251; obscene 1.614; threat 754; severe_toxic 4. En validación y prueba, severe_toxic tiene 0, por lo que no se evalúa en Civil.
+- **Diferencias con Jigsaw:** `obscene` se marca mucho menos (0,54 % contra 5,29 %); es otro dominio (noticias) y otros anotadores; el corte de 0,5 es una decisión propia.
+- **Riesgos:** ruido de etiqueta al combinar fuentes; datos de 2015-2017; posible texto personal en los comentarios.
+- **Distribución:** no se incluye en el repositorio; se descarga con `python -m src.data_civil`.
