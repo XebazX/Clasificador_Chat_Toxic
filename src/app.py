@@ -1,15 +1,15 @@
 """Aplicación web: escribe un comentario en inglés y mira qué tipo de
-toxicidad detecta el modelo E-02."""
+toxicidad detecta el modelo E-06."""
 import json
+import math
 from pathlib import Path
 
 import gradio as gr
 import joblib
 
-MODELO = "E-02"
+MODELO = "E-06"
 RUTA_MODELO = Path("models") / f"{MODELO}.joblib"
-RUTA_UMBRALES = Path("models") / f"{MODELO}_umbrales.json"
-RUTA_REGISTRO = Path("results") / "experiments.jsonl"
+RUTA_CALIB = Path("models") / f"{MODELO}_calibracion.json"
 
 ETIQUETAS = ["toxic", "severe_toxic", "obscene", "threat", "insult",
              "identity_hate"]
@@ -24,33 +24,42 @@ NOMBRES = {
 MAX_CARACTERES = 5000
 
 
-def cargar_umbrales() -> list:
-    """Umbrales fijados en validación (mismo orden que ETIQUETAS)."""
-    if RUTA_UMBRALES.exists():
-        return json.loads(RUTA_UMBRALES.read_text(encoding="utf-8"))["umbrales"]
-    with open(RUTA_REGISTRO, encoding="utf-8") as f:
-        registros = [json.loads(linea) for linea in f]
-    return [r for r in registros if r["id"] == MODELO][-1]["umbrales_val"]
+def cargar_calibracion() -> dict:
+    """Umbrales (sobre el puntaje crudo) y parámetros de calibración."""
+    return json.loads(RUTA_CALIB.read_text(encoding="utf-8"))
+
+
+def calibrar(puntaje: float, a: float, b: float) -> float:
+    """Convierte el puntaje crudo en una probabilidad estimada (Platt)."""
+    p = min(max(puntaje, 1e-6), 1 - 1e-6)
+    z = a * math.log(p / (1 - p)) + b
+    return 1 / (1 + math.exp(-z))
 
 
 def puntuar(texto: str, pipe) -> dict:
-    """Puntaje (0 a 1) del modelo para cada etiqueta."""
+    """Puntaje crudo (0 a 1) del modelo para cada etiqueta."""
     X = pipe.named_steps["tfidf"].transform([texto])
     p = pipe.named_steps["clf"].predict_proba(X)[0]
     return {e: float(v) for e, v in zip(ETIQUETAS, p)}
 
 
-def clasificar(texto, pipe, umbrales):
-    """Valida la entrada y devuelve (puntajes, etiquetas_marcadas, mensaje).
-    Si la entrada no es válida, puntajes es None."""
+def clasificar(texto, pipe, umbrales, calib=None):
+    """Valida la entrada y devuelve (puntajes_mostrados, etiquetas_marcadas,
+    mensaje). La decisión usa siempre el puntaje crudo y su umbral; si hay
+    calibración, solo cambian los porcentajes que se muestran."""
     if texto is None or not texto.strip():
         return None, [], "Escribe un comentario en inglés para analizarlo."
     if len(texto) > MAX_CARACTERES:
         return None, [], (f"El texto es demasiado largo ({len(texto)} "
                           f"caracteres). El máximo es {MAX_CARACTERES}.")
 
-    puntajes = puntuar(texto, pipe)
-    marcadas = [e for e, u in zip(ETIQUETAS, umbrales) if puntajes[e] >= u]
+    crudos = puntuar(texto, pipe)
+    marcadas = [e for e, u in zip(ETIQUETAS, umbrales) if crudos[e] >= u]
+    if calib:
+        mostrados = {e: calibrar(crudos[e], calib["a"][i], calib["b"][i])
+                     for i, e in enumerate(ETIQUETAS)}
+    else:
+        mostrados = crudos
 
     if marcadas:
         nombres = ", ".join(NOMBRES[e] for e in marcadas)
@@ -63,12 +72,12 @@ def clasificar(texto, pipe, umbrales):
     if no_ascii > 0.3:
         mensaje += ("\n\n_Aviso: el texto parece no estar en inglés; el modelo "
                     "solo fue entrenado con inglés y el resultado no es fiable._")
-    return puntajes, marcadas, mensaje
+    return mostrados, marcadas, mensaje
 
 
-def crear_app(pipe, umbrales):
+def crear_app(pipe, umbrales, calib=None):
     def analizar(texto):
-        puntajes, _, mensaje = clasificar(texto, pipe, umbrales)
+        puntajes, _, mensaje = clasificar(texto, pipe, umbrales, calib)
         if puntajes is None:
             return None, mensaje
         return {NOMBRES[e]: s for e, s in puntajes.items()}, mensaje
@@ -78,30 +87,34 @@ def crear_app(pipe, umbrales):
             "# Clasificador de comentarios tóxicos\n"
             "Escribe un comentario **en inglés** y el resultado aparece debajo. "
             f"Modelo `{MODELO}` (TF-IDF + regresión logística), entrenado con "
-            "el dataset Jigsaw Toxic Comment (Wikipedia, 2017).")
+            "comentarios de Wikipedia (Jigsaw, 2017) y de sitios de noticias "
+            "(Civil Comments, 2015-2017).")
         entrada = gr.Textbox(label="Comentario (en inglés)", lines=4,
                              placeholder="Type a comment in English...")
         resumen = gr.Markdown()
-        detalle = gr.Label(label="Puntaje por categoría (0 a 1)",
+        detalle = gr.Label(label="Probabilidad estimada por categoría",
                            num_top_classes=6)
         entrada.change(analizar, entrada, [detalle, resumen],
                        trigger_mode="always_last", show_progress="hidden")
         gr.Examples(
             examples=["Thanks for your help, I really appreciate it.",
+                      "Hello bro, how are u today?",
                       "You are an idiot.",
                       "I will find you and hurt you."],
             inputs=entrada)
         gr.Markdown(
             "### Límites de uso\n"
             "- Solo funciona en **inglés** y fue entrenado con comentarios de "
-            "Wikipedia; en otros contextos puede fallar.\n"
+            "2015-2017 (Wikipedia y sitios de noticias); la jerga actual o "
+            "los chats pueden fallar.\n"
             "- Es una **herramienta de apoyo**: la decisión sobre un comentario "
             "o usuario debe tomarla una persona.\n"
             "- No entiende contexto, ironía ni citas, y puede marcar de más "
-            "comentarios que mencionan ciertos grupos (ver `docs/evaluacion_final.md`).\n"
+            "comentarios que mencionan ciertos grupos.\n"
             "- Las categorías raras (amenaza, odio hacia un grupo) son menos "
             "fiables.\n"
-            "- El puntaje no es una probabilidad calibrada.\n"
+            "- Los porcentajes son una estimación calibrada con datos de "
+            "validación, no una garantía.\n"
             "- Esta aplicación no guarda los textos que escribes; aun así, "
             "no escribas datos personales.")
     return demo
@@ -109,4 +122,5 @@ def crear_app(pipe, umbrales):
 
 if __name__ == "__main__":
     modelo = joblib.load(RUTA_MODELO)
-    crear_app(modelo, cargar_umbrales()).launch()
+    cfg = cargar_calibracion()
+    crear_app(modelo, cfg["umbrales"], cfg).launch()

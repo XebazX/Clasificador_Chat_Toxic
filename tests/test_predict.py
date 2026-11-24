@@ -3,7 +3,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.pipeline import Pipeline
-
+from src.app import calibrar
 from src.app import ETIQUETAS, MAX_CARACTERES, clasificar
 
 
@@ -43,3 +43,18 @@ def test_umbrales_extremos():
 def test_texto_no_ingles_genera_aviso():
     _, _, mensaje = clasificar("你好你好你好你好", _pipe(), [0.5] * 6)
     assert "no estar en inglés" in mensaje
+
+
+
+
+def test_calibrar_es_creciente_y_queda_entre_0_y_1():
+    valores = [calibrar(p, a=1.2, b=-4.0) for p in (0.0, 0.1, 0.5, 0.9, 1.0)]
+    assert valores == sorted(valores)
+    assert all(0 < v < 1 for v in valores)
+
+
+def test_calibracion_no_cambia_las_etiquetas_marcadas():
+    calib = {"a": [1.3] * 6, "b": [-3.0] * 6}
+    _, sin, _ = clasificar("you are an idiot", _pipe(), [0.5] * 6)
+    _, con, _ = clasificar("you are an idiot", _pipe(), [0.5] * 6, calib)
+    assert sin == con
