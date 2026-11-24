@@ -45,5 +45,5 @@ Cambios por etiqueta en F1: `threat` 0,43 → 0,51; `severe_toxic` 0,50 → 0,49
 - El desempeño absoluto en Civil sigue siendo modesto (F1 macro 0,47; `threat` 0,29; `identity_hate` 0,37; pocos positivos por etiqueta).
 - Las etiquetas de Civil se derivaron con un corte de 0,5 sobre la fracción de anotadores. `obscene` está definida de forma distinta (0,54 % de positivos en Civil contra 5,29 % en Jigsaw), lo que introduce ruido de etiqueta.
 - Civil Comments son comentarios de sitios de noticias de 2015 a 2017, no chats: no se evaluó con texto informal actual (jerga, abreviaturas).
-- No se revisó el sesgo por términos de identidad en E-06 (solo se hizo para E-02).
+- El sesgo por términos de identidad se revisó solo en validación (ver docs/sesgo_E-06.md) y empeoró respecto a E-02.
 - Un solo entrenamiento sin validación cruzada, con semilla 42.

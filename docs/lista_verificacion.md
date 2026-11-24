@@ -21,7 +21,7 @@
 - [x] Modelo final exportado y versionado (`models/E-06.joblib`).
 - [x] Plan de evaluación previo y pruebas usadas según lo declarado (`plan_evaluacion.md`, `evaluacion_final.md`, `evaluacion_E-06.md`).
 - [x] Métricas por subgrupo, medida de variabilidad y análisis de errores con ejemplos agrupados.
-- [ ] Revisión de sesgo por términos de identidad en E-06 (`src/sesgo_validacion.py`).
+- [x] Revisión de sesgo por términos de identidad en E-06 (`src/sesgo_validacion.py`).
 
 ## Aplicación y entrega (criterios 11, 12, 13)
 - [x] Aplicación en línea que carga el modelo: https://toxic-scanner.streamlit.app/
