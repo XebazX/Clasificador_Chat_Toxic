@@ -25,3 +25,6 @@ Modelo final candidato: **E-02**, elegido con datos de **validación**. Es el me
 ## Limitaciones de esta bitácora
 - Cada experimento se corrió una vez con semilla 42; la variabilidad se estima solo con la validación cruzada.
 - El F1 macro usa umbrales ajustados sobre la misma validación, por lo que es algo optimista.
+
+## E-06 (24/11/2026): datos Jigsaw + Civil Comments
+Igual que E-02; cambian los datos de entrenamiento (+297.458 comentarios de Civil Comments). Plan y criterios definidos antes en `plan_evaluacion.md`. Un solo entrenamiento (72 s), sin validación cruzada. Validación: Jigsaw ROC-AUC 0,9806 (E-02: 0,9809); Civil ROC-AUC 0,9486 (E-02: 0,8581). Evaluación final en `docs/evaluacion_E-06.md`: cumple los tres criterios y pasa a ser el modelo final.
