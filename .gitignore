@@ -226,3 +226,5 @@ data/
 .env
 *.key
 models/
+
+results/errores_*.csv
