@@ -63,7 +63,28 @@ El desempeño baja con la longitud. Posible explicación (no verificada): en tex
 Los comentarios que mencionan "gay" se marcan unas 11 veces más que el promedio de comentarios sin etiqueta. Los grupos son pequeños (n entre 1 y 146) y no se probó significancia estadística, así que es una señal de sesgo que hay que vigilar, no una medición exacta. Parte puede deberse a etiquetas ruidosas del dataset. Implicación de uso: no debe usarse para sancionar automáticamente.
 
 ## 5. Análisis de errores
-[Completar tras revisar `results/errores_toxic.csv`: agrupar falsos negativos y falsos positivos por tipo, con 2 o 3 ejemplos cortos de cada grupo, sin datos personales.]
+
+Se revisaron 40 falsos negativos y 40 falsos positivos de la etiqueta `toxic` (`results/errores_toxic.csv`, no versionado por contener lenguaje ofensivo y posibles datos personales). Los falsos negativos se ordenaron de menor a mayor puntaje y los falsos positivos de mayor a menor, así que **son los casos más extremos, no una muestra aleatoria**: no permiten estimar con qué frecuencia ocurre cada tipo de error. Se leyeron en detalle 10 de cada tipo.
+
+### Falsos negativos (comentario etiquetado como tóxico que el modelo no marcó)
+| Grupo | Descripción | Ejemplo (resumido) | Acción propuesta |
+|---|---|---|---|
+| A. Etiqueta dudosa | El texto no parece tóxico; el modelo probablemente acierta. | Queja por bots que borran imágenes; mensaje neutro sobre una canción; debate sobre una secta. | Revisar manualmente la anotación; reportar métricas aparte con etiquetas corregidas. |
+| B. Hostilidad suave o sarcasmo | Frustración sin insultos explícitos. | "this one stinks", "a JOKE", "Ridiculous". | Fuera del alcance de TF-IDF; probar un modelo contextual (trabajo futuro). |
+| C. Insulto diluido en texto largo | Un insulto aislado dentro de un mensaje largo o con formato de plantilla. | Mensaje de bienvenida que comienza con un insulto homofóbico; mensaje con groserías hacia un grupo nacional. | Puntuar por oraciones y tomar el máximo, o añadir n-gramas de caracteres. |
+
+### Falsos positivos (comentario sin etiqueta que el modelo marcó con puntaje ≈ 1,0)
+| Grupo | Descripción | Ejemplo (resumido) | Acción propuesta |
+|---|---|---|---|
+| D. Probable etiqueta faltante | Ataque personal evidente con etiqueta 0. | Insultos a un moderador ("little hitler", "bullying thug", "Idiot"); mensaje de odio hacia un grupo. | Revisar una muestra de falsos positivos de puntaje alto; el "error" puede ser de la anotación. |
+| E. Contenido sexual o vandalismo | Texto explícito etiquetado como 0. | Relato sexual en una página de discusión. | Evaluar si el dataset etiqueta esa categoría de forma consistente. |
+| F. Cita o mención del lenguaje | El texto cita o enlaza reglas de cortesía o críticas a administradores. | Mensaje que cita las políticas de Wikipedia contra ataques personales. | Falso positivo genuino por palabras clave sin contexto; modelo contextual (trabajo futuro). |
+
+### Lectura
+- Una parte importante de los errores revisados **parece originarse en la anotación** (grupos A, D y E), lo que coincide con los 41 grupos de casi-duplicados con etiquetas contradictorias del EDA. Esto limita el rendimiento que se puede esperar y significa que el F1 reportado subestima el desempeño real; sin embargo, esta afirmación **no está medida**: se basa en una lectura de 20 casos extremos.
+- Los errores que sí son del modelo (grupos B, C y F) apuntan a su principal límite: representa el texto como bolsa de palabras ponderadas y no entiende contexto, ironía ni citas.
+- Una explicación posible, pero **no verificada**, del peor desempeño en comentarios largos es la dilución del insulto dentro de más texto.
+- Esta revisión no demuestra causalidad: las explicaciones de cada grupo son hipótesis que habría que probar con experimentos (por ejemplo, puntuar por oraciones y comparar).
 
 ## 6. Amenazas a la validez
 - Una sola partición de prueba y una sola semilla.
